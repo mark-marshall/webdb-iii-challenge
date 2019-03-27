@@ -5,7 +5,17 @@
   "main": "index.js",
   "scripts": {
     "server": "nodemon",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "initdb": "knex init",
+    "table1": "knex migrate:make createRolesTable",
+    "table2": "knex migrate:make createUsersTable",
+    "migrate": "knex migrate:latest",
+    "seed1": "knex seed:make 01-roles",
+    "seed2": "knex seed:make 02-users",
+    "runseed1": "knex seed:run 01-roles",
+    "runseed2": "knex seed:run 02-users",
+    "rollback": "knex migrate:rollback",
+    "seed": "knex seed:run"
   },
   "repository": {
     "type": "git",
@@ -20,6 +30,7 @@
   "homepage": "https://github.com/mark-marshall/webdb-iii-challenge#readme",
   "dependencies": {
     "express": "^4.16.4",
+    "knex": "^0.16.3",
     "nodemon": "^1.18.10",
     "sqlite3": "^4.0.6"
   }
