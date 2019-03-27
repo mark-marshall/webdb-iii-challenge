@@ -129,6 +129,8 @@ server.get(studentsUrlByCohortId, (req, res) => {
 /*
   [PUT] requires a req.body with fields:
   "id": integer of cohort_id not already listed in the databse
+  OR "name": "string"
+  OR bot
   */
 server.put(cohortsUrlById, (req, res) => {
   const cohortUpdate = req.body;
@@ -149,12 +151,12 @@ server.put(cohortsUrlById, (req, res) => {
       .catch(err => {
         res
           .status(500)
-          .json({ message: 'there was an error updating the id of th cohort' });
+          .json({ message: 'there was an error updating the the cohort' });
       });
   } else {
     res
       .status(404)
-      .json({ message: 'please include an id field with your cohort update' });
+      .json({ message: 'please include an id or name field with your cohort update' });
   }
 });
 
