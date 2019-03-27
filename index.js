@@ -155,11 +155,9 @@ server.put(cohortsUrlById, (req, res) => {
           .json({ message: 'there was an error updating the cohort' });
       });
   } else {
-    res
-      .status(404)
-      .json({
-        message: 'please include an id or name field with your cohort update',
-      });
+    res.status(404).json({
+      message: 'please include an id or name field with your cohort update',
+    });
   }
 });
 
@@ -181,11 +179,9 @@ server.post(studentsUrl, (req, res) => {
         res.status(500).json({ message: 'the student could not be added' });
       });
   } else {
-    res
-      .status(404)
-      .json({
-        message: 'please include name and cohort_id fields with your student',
-      });
+    res.status(404).json({
+      message: 'please include name and cohort_id fields with your student',
+    });
   }
 });
 
@@ -193,69 +189,85 @@ server.post(studentsUrl, (req, res) => {
 [GET] requires nothing
 */
 server.get(studentsUrl, (req, res) => {
-    db('students')
-      .then(students => {
-        if (students.length > 0) {
-          res.status(200).json(students);
-        } else {
-          res.status(200).json({
-            message: 'the students list is empty, add a cohort to get started',
-          });
-        }
-      })
-      .catch(err => {
-        res.status(500).json({ message: 'the students could not be retrieved' });
-      });
-  });
-  
-  /*
+  db('students')
+    .then(students => {
+      if (students.length > 0) {
+        res.status(200).json(students);
+      } else {
+        res.status(200).json({
+          message: 'the students list is empty, add a cohort to get started',
+        });
+      }
+    })
+    .catch(err => {
+      res.status(500).json({ message: 'the students could not be retrieved' });
+    });
+});
+
+/*
   [GET] requires an existing id in params
   */
-  server.get(studentsUrlById, (req, res) => {
-    const { id } = req.params;
-    db('students')
-      .where({ id })
-      .then(cohort => {
-        if (cohort.length > 0) {
-          res.status(200).json(cohort);
-        } else {
-          res
-            .status(404)
-            .json({ message: 'no students exist with the provided id' });
-        }
-      })
-      .catch(err => {
+server.get(studentsUrlById, (req, res) => {
+  const { id } = req.params;
+  db('students')
+    .where({ id })
+    .then(student => {
+      if (student.length > 0) {
+        db('cohorts')
+          .where({ id: student[0].cohort_id })
+          .then(cohortName => {
+            delete student[0].cohort_id;
+            student[0].cohort = cohortName[0].name;
+            res
+              .status(200)
+              .json(student)
+              .catch(err => {
+                res
+                  .status(500)
+                  .json({
+                    message:
+                      'there was en error retrieving the cohort this student is enrolled in',
+                  });
+              });
+          });
+      } else {
         res
-          .status(500)
-          .json({ message: 'there was an error finding the cohort' });
-      });
-  });
+          .status(404)
+          .json({ message: 'no students exist with the provided id' });
+      }
+    })
+    .catch(err => {
+      res
+        .status(500)
+        .json({ message: 'there was an error finding the cohort' });
+    });
+});
 
-  /*
+/*
 [DELETE] requires an existing id in params
 */
 server.delete(studentsUrlById, (req, res) => {
-    const { id } = req.params;
-    db('students')
-      .where({ id })
-      .del()
-      .then(count => {
-        if (count) {
-          res.status(200).json({ deletedRecords: count });
-        } else {
-          res
-            .status(404)
-            .json({ message: 'no students exist with the provided id' });
-        }
-      })
-      .catch(err => {
+  const { id } = req.params;
+  db('students')
+    .where({ id })
+    .del()
+    .then(count => {
+      if (count) {
+        res.status(200).json({ deletedRecords: count });
+      } else {
         res
-          .status(500)
-          .json({ message: 'there was an error deleting the cohort' });
-      });
-  });
+          .status(404)
+          .json({ message: 'no students exist with the provided id' });
+      }
+    })
+    .catch(err => {
+      res
+        .status(500)
+        .json({ message: 'there was an error deleting the cohort' });
+    });
+});
 
-  /*
+/*
   [PUT] requires a req.body with fields:
   "id": integer of cohort_id not already listed in the database
   OR "name": "string"
@@ -263,33 +275,32 @@ server.delete(studentsUrlById, (req, res) => {
   OR ALL/AND any combination
   */
 server.put(studentsUrlById, (req, res) => {
-    const studentUpdate = req.body;
-    const { id } = req.params;
-    if (studentUpdate.id || studentUpdate.name || studentUpdate.cohort_id) {
-      db('students')
-        .where({ id })
-        .update(studentUpdate)
-        .then(count => {
-          if (count) {
-            res.status(200).json({ updatedRecords: count });
-          } else {
-            res
-              .status(404)
-              .json({ message: 'no students exist with the provided id' });
-          }
-        })
-        .catch(err => {
+  const studentUpdate = req.body;
+  const { id } = req.params;
+  if (studentUpdate.id || studentUpdate.name || studentUpdate.cohort_id) {
+    db('students')
+      .where({ id })
+      .update(studentUpdate)
+      .then(count => {
+        if (count) {
+          res.status(200).json({ updatedRecords: count });
+        } else {
           res
-            .status(500)
-            .json({ message: 'there was an error updating the student' });
-        });
-    } else {
-      res
-        .status(404)
-        .json({
-          message: 'please include an id, name, or cohort_id field with your student update',
-        });
-    }
-  });
+            .status(404)
+            .json({ message: 'no students exist with the provided id' });
+        }
+      })
+      .catch(err => {
+        res
+          .status(500)
+          .json({ message: 'there was an error updating the student' });
+      });
+  } else {
+    res.status(404).json({
+      message:
+        'please include an id, name, or cohort_id field with your student update',
+    });
+  }
+});
 
 server.listen(8000, () => console.log(`\nrunning on 8000\n`));
